@@ -1,9 +1,5 @@
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from api.config.database import mongodb
-from utils import call_scraper
+from .utils import call_scraper, insert_rate_to_db 
 
 def scrape_all():
     bank_collection = mongodb.get_collection('banks')
@@ -21,7 +17,6 @@ def scrape_all():
             continue
 
         print(f'Scraped data for {bank_name}: {data}')
-        from utils import insert_rate_to_db
         insert_rate_to_db(data)
     
 if __name__ == "__main__":
