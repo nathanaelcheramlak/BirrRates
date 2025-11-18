@@ -1,12 +1,18 @@
+import os
 from celery import Celery
 from celery.schedules import crontab
 from scraper.scrape import scrape_all
+from dotenv import load_dotenv
+load_dotenv()
 
-# Celery configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+if not REDIS_URL:
+    raise ValueError("REDIS_URL is not set in environment variables.")
+
 celery = Celery(
     "my_app",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/1"
+    broker=REDIS_URL,
+    backend=REDIS_URL
 )
 
 celery.conf.timezone = "UTC"
@@ -18,10 +24,9 @@ def scraper():
     scrape_all()
     print("Cron Job Finished!")
 
-# CELERY BEAT SCHEDULE
 celery.conf.beat_schedule = {
     "run-every-8-hours": {
         "task": "celery_app.scraper",
-        "schedule": crontab(), 
+        "schedule": crontab(hour="*/8"),
     },
 }
