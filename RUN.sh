@@ -1,6 +1,6 @@
 #!/bin/bash
-# Start Celery worker and beat
-pip install -r requirements.txt
-celery -A celery_app worker --loglevel=info &
-celery -A celery_app beat --loglevel=info &
-wait
+celery -A celery_app worker --loglevel=info > worker.log 2>&1 &
+celery -A celery_app beat --loglevel=info > beat.log 2>&1 &
+
+# Start your API
+uvicorn main:app --reload
