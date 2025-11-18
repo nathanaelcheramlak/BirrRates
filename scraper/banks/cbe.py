@@ -1,10 +1,13 @@
-from datetime import datetime
 import requests
+from dotenv import load_dotenv
+from datetime import datetime
+import os
 
-# CBE Endpoint: https://combanketh.et/cbeapi/daily-exchange-rates/?_limit=1&Date=2024-11-15
-DEFAULT_ENDPOINT = "https://combanketh.et/cbeapi/daily-exchange-rates/?_limit=1"
+load_dotenv()
+DEFAULT_ENDPOINT = os.getenv("DEFAULT_CBE_URL")
+DEFAULT_DATE = datetime.now().strftime("%Y-%m-%d")
 
-def scrape_cbe(cbe_endpoint=DEFAULT_ENDPOINT, date=None):
+def scrape_cbe(cbe_endpoint=DEFAULT_ENDPOINT, date=DEFAULT_DATE):
     """
     Scrape the Central Bank of Ethiopia (CBE) exchange rates.
     """
@@ -28,13 +31,14 @@ def scrape_cbe(cbe_endpoint=DEFAULT_ENDPOINT, date=None):
             transfer_buy_rate = exchange_rate.get("transactionalBuying")
             transfer_sell_rate = exchange_rate.get("transactionalSelling")
 
-            currency_code = exchange_rate.get("currency", {}).get("CurrencyCode")
-            currency_name = exchange_rate.get("currency", {}).get("CurrencyName")
+            currency_code = exchange_rate.get("currency", {}).get("CurrencyCode", "").upper()
+            currency_name = exchange_rate.get("currency", {}).get("CurrencyName", "").upper()
 
             if not all([currency_code, currency_name, cash_buy_rate, cash_sell_rate]):
                 continue  # Skip incomplete data
 
             currencies.append({
+                "bank_code": "CBE",
                 "currency_code": currency_code,
                 "currency_name": currency_name,
                 "cash_buying_rate": cash_buy_rate,
@@ -53,3 +57,16 @@ def scrape_cbe(cbe_endpoint=DEFAULT_ENDPOINT, date=None):
 
 
 print(scrape_cbe(date="2025-11-15"))
+# Sample Output:
+"""
+{
+    'currency_code': 'USD', 
+    'currency_name': 'US DOLLAR', 
+    'cash_buying_rate': 150.5286, 
+    'cash_selling_rate': 153.5392, 
+    'transaction_buying_rate': 150.5286, 
+    'transaction_selling_rate': 153.5392, 
+    'rate_date': '2025-11-15', 
+    'scrape_date': '2025-11-17T16:31:16.166901'
+}
+"""

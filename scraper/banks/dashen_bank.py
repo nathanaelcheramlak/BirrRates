@@ -1,8 +1,11 @@
-from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-DEFAULT_URL = "https://dashenbanksc.com/daily-exchange-rates/"
+load_dotenv()
+DEFAULT_URL = os.getenv("DEFAULT_DASHEN_URL")
 
 def scrape_dashen_bank(url=DEFAULT_URL):
     """
@@ -29,14 +32,12 @@ def scrape_dashen_bank(url=DEFAULT_URL):
             if len(row_values) < 5:
                 continue  # Skip incomplete rows
 
-            currency_code = row_values[0]
-            currency_name = row_values[1]
+            currency_code = row_values[0].upper()
             cash_buying_rate = row_values[2]
             cash_selling_rate = row_values[3]
 
             currencies[currency_code] = {
                 "currency_code": currency_code,
-                "currency_name": currency_name,
                 "cash_buying_rate": cash_buying_rate,
                 "cash_selling_rate": cash_selling_rate
             }
@@ -47,14 +48,12 @@ def scrape_dashen_bank(url=DEFAULT_URL):
                 continue  # Skip incomplete rows
 
             currency_code = row_values[0]
-            currency_name = row_values[1]
             transaction_buying_rate = row_values[2]
             transaction_selling_rate = row_values[3]
 
             if currency_code not in currencies:
                 currencies[currency_code] = {
                     "currency_code": currency_code,
-                    "currency_name": currency_name,
                     "cash_buying_rate": None,
                     "cash_selling_rate": None
                 }
@@ -65,10 +64,29 @@ def scrape_dashen_bank(url=DEFAULT_URL):
 
             currencies[currency_code]["scrape_date"] = datetime.now().isoformat()
             currencies[currency_code]["rate_date"] = datetime.now().isoformat().split('T')[0]
+            currencies[currency_code]["bank_code"] = "DASHEN"
         
-        return list(currencies.values())
+        currency_values = []
+        for currency_data in currencies.values():
+            if len(currency_data) == 8:
+                currency_values.append(currency_data)
+        return currency_values
     except requests.RequestException as e:
         print(f"Error fetching data from Dashen Bank: {e}")
         return []
     
 print(scrape_dashen_bank())
+# Sample Output:
+"""
+{
+    'bank_code': 'CBE',
+    'currency_code': 'USD', 
+    'currency_name': 'US Dollar', 
+    'cash_buying_rate': '150.4809', 
+    'cash_selling_rate': '153.4905', 
+    'transaction_buying_rate': '150.4809', 
+    'transaction_selling_rate': '153.4905', 
+    'scrape_date': '2025-11-17T16:33:01.334862', 
+    'rate_date': '2025-11-17'
+}
+"""

@@ -13,7 +13,7 @@ def get_currencies() -> list[ResponseCurrency]:
     currencies = []
     for doc in docs:
         currencies.append({
-            "code": doc["code"],
+            "currency_code": doc["currency_code"],
             "name": doc["name"],
         })
     return currencies
@@ -22,11 +22,11 @@ def get_currencies() -> list[ResponseCurrency]:
 @currency_router.get("/{currency_code}")
 def get_currency(currency_code: str) -> ResponseCurrency:
     col = mongodb.get_collection("currencies")
-    doc = col.find_one({"code": currency_code.upper()})
+    doc = col.find_one({"currency_code": currency_code.upper()})
     if doc is None:
         raise HTTPException(status_code=404, detail="Currency not found")
     
     return {
-        "code": doc["code"],
+        "currency_code": doc["currency_code"],
         "name": doc["name"],
     }
